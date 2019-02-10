@@ -1,0 +1,3 @@
+~\/*staging.presshub*?$ "noindex, follow";
+~\/*.(html)?$ "all";
+~\/*.(php)?$ "all";
