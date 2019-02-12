@@ -36,10 +36,6 @@ wp --allow-root core multisite-install --subdomains --url="https://${NGINX_SERVE
 # better post structure as a default
 wp --allow-root rewrite structure '/%postname%/' --hard
 
-# install  plugin
-# wp --allow-root plugin install amp antispam-bee nginx-helper wordpress-seo redis-cache --activate
-# wp --allow-root theme install /usr/src/plugins/wordpress/theme.zip --activate
-
 # We need to copy the object cache to the proper location
 if [[ ! -f ${APP_DOCROOT}/wp-content/plugins/redis-cache/includes/object-cache.php ]]; then
 echo "OK: No object cache file to copy"
