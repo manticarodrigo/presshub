@@ -66,10 +66,7 @@ function cleanup () {
   find ${APP_DOCROOT} ! -user www-data -exec /usr/bin/env bash -c 'i="$1"; chown www-data:www-data "$i"' _ {} \;
   find ${APP_DOCROOT} ! -perm 755 -type d -exec /usr/bin/env bash -c 'i="$1"; chmod 755  "$i"' _ {} \;
   find ${APP_DOCROOT} ! -perm 644 -type f -exec /usr/bin/env bash -c 'i="$1"; chmod 644 "$i"' _ {} \;
-
-  # Backup install page
-  sleep 10
-  # mv /usr/share/nginx/html/install.html /usr/share/nginx/html/$date-old-install.html
+  
   # Clean the cache before launch
   rm -Rf /var/cache/*
 }
@@ -82,7 +79,7 @@ function run() {
   if [[ -f ${APP_DOCROOT}/wp-config.php ]]; then
      wordpress_cli_install
      wordpress_config
-    #  cleanup
+     cleanup
   else
      echo "Wordpress is not installed, skipping setup..."
   fi
