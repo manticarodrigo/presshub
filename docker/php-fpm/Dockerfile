@@ -76,7 +76,7 @@ COPY conf/monit/ /etc/monit.d/
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY check_wwwdata.sh /usr/bin/check_wwwdata
 COPY check_folder.sh /usr/bin/check_folder
-COPY install /usr/src/plugins/wordpress
+COPY install /usr/src/plugins/wordpress/install
 
 EXPOSE 9000
 

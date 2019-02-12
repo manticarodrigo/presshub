@@ -1,5 +1,25 @@
 version: '3.1'
 services:
+  # MariaDB Service
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${WORDPRESS_DB_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WORDPRESS_DB_ROOT_PASSWORD}
+    tty: true
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ulimits:
+      nproc: 65535
+      nofile:
+          soft: 49999
+          hard: 99999
   # NGINX Service
   nginx:
     build: ./docker/nginx
@@ -23,8 +43,8 @@ services:
           soft: 49999
           hard: 99999
     env_file:
-      - ./wordpress.env
-  # PHP Service
+      - ./.env
+  # PHP-FPM Service
   php-fpm:
     build: ./docker/php-fpm
     container_name: php-fpm
@@ -32,7 +52,7 @@ services:
     depends_on:
       - mariadb
     env_file:
-      - ./wordpress.env
+      - ./.env
     ports:
       - 9000:9000
     tmpfs:
@@ -40,24 +60,6 @@ services:
     tty: true
     volumes:
        - ./wordpress:/usr/share/nginx/html
-    ulimits:
-      nproc: 65535
-      nofile:
-          soft: 49999
-          hard: 99999
-  # MariaDB Service
-  mariadb:
-    image: mariadb:latest
-    container_name: mariadb
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: S4fsNNHDAuzkZEDYixv6aK1fD84kZLdy
-      MYSQL_ROOT_PASSWORD: veeGpfbjmG816rEM
-    tty: true
-    restart: unless-stopped
-    volumes:
-      - mariadb_data:/var/lib/mysql
     ulimits:
       nproc: 65535
       nofile:

@@ -96,6 +96,17 @@ define('FORCE_SSL_ADMIN', true);
 if (strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false)
        $_SERVER['HTTPS']='on';
 
+
+
+define( 'WP_ALLOW_MULTISITE', true );
+define( 'MULTISITE', true );
+define( 'SUBDOMAIN_INSTALL', true );
+$base = '/';
+define( 'DOMAIN_CURRENT_SITE', 'presshub.me' );
+define( 'PATH_CURRENT_SITE', '/' );
+define( 'SITE_ID_CURRENT_SITE', 1 );
+define( 'BLOG_ID_CURRENT_SITE', 1 );
+
 /* That's all, stop editing! Happy blogging. */
 
 /** Absolute path to the WordPress directory. */
