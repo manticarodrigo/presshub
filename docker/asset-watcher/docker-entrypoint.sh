@@ -34,4 +34,4 @@ function run() {
 
 run
 
-# exec "$@"
+exec "$@"
