@@ -50,6 +50,7 @@ server {
   include                         /etc/nginx/conf.d/monit.conf;
   include                         /etc/nginx/conf.d/purge.conf;
   include                         /etc/nginx/conf.d/failed.conf;
+  include                         /etc/nginx/conf.d/webp-redirect.conf;
 }
 
 server {
