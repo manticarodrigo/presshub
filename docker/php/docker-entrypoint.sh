@@ -212,6 +212,7 @@ function run() {
   if [[ ! -z $NGINX_APP_PLUGIN ]]; then install_plugin else echo "OK: No plugins will be activated"; fi
   #permissions
   echo "OK: All processes have completed. Service is ready..."
+
 }
 
 run

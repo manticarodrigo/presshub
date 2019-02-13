@@ -26,7 +26,7 @@ services:
     container_name: nginx
     privileged: true
     depends_on:
-      - php-fpm
+      - php
       - mariadb
       - redis
     ports:
@@ -36,7 +36,7 @@ services:
     restart: unless-stopped
     tmpfs: /var/cache
     volumes:
-      - ./wordpress:/usr/share/nginx/html
+      - ./wordpress:${APP_DOCROOT}
     ulimits:
       nproc: 65535
       nofile:
@@ -44,10 +44,10 @@ services:
           hard: 99999
     env_file:
       - ./.env
-  # PHP-FPM Service
-  php-fpm:
-    build: ./docker/php-fpm
-    container_name: php-fpm
+  # PHP Service
+  php:
+    build: ./docker/php
+    container_name: php
     restart: always
     depends_on:
       - mariadb
@@ -59,7 +59,7 @@ services:
       - /var/cache
     tty: true
     volumes:
-       - ./wordpress:/usr/share/nginx/html
+       - ./wordpress:${APP_DOCROOT}
     ulimits:
       nproc: 65535
       nofile:
@@ -70,6 +70,15 @@ services:
     image: redis
     container_name: redis
     restart: always
+  # Asset Watcher Service
+  asset-watcher:
+    build: ./docker/asset-watcher
+    container_name: asset-watcher
+    env_file:
+      - ./.env
+    tty: true
+    volumes:
+       - ./wordpress:${APP_DOCROOT}
 volumes:
   mariadb_data:
     driver: local
