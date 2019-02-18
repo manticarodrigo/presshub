@@ -1,5 +1,4 @@
 <?php
-define('WP_CACHE', true); // Added by WP Rocket
 /**
  * The base configuration for WordPress
  *
@@ -79,7 +78,7 @@ $table_prefix  = 'wp_';
  *
  * @link https://codex.wordpress.org/Debugging_in_WordPress
  */
-define('WP_DEBUG', false);
+define('WP_DEBUG', getenv('WP_DEBUG'));
 
 ##insertssl */
 define('DISALLOW_FILE_EDIT', 'true');
