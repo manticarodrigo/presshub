@@ -11,7 +11,8 @@ else
   DOMAIN=$1
   export DOMAIN
   SERVER_HOSTNAME=$DOMAIN
-
+  export SERVER_HOSTNAME
+  
 fi
 
 detect_os () {
