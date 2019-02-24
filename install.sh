@@ -94,7 +94,8 @@ install_deb () {
           ca-certificates \
           curl \
           dnsutils \
-          software-properties-common -y
+          software-properties-common -y \
+          git
 
   # Install Docker
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
@@ -132,8 +133,7 @@ install_docker () {
 
   # Pull Docker images
   echo "OK: Downloding Docker services..."
-  docker pull openbridge/nginx:latest
-  docker pull openbridge/ob_php-fpm:latest
+  docker pull alpine:3.8
   docker pull mariadb
   docker pull redis:alpine
   docker pull certbot/certbot
@@ -142,27 +142,15 @@ install_docker () {
 
 install_host () {
 
-  # Set the plugin directory
-  if [ ! -d $dir/plugins/wordpress ]; then mkdir -p $dir/plugins/wordpress; fi
-
-  # Install configuration files
-  cd $dir || exit
-  curl --url https://s3.amazonaws.com/get.wordpressapp.sh/wordpress-no-ssl.yml -o $dir/wordpress-no-ssl.yml
-  curl --url https://s3.amazonaws.com/get.wordpressapp.sh/wordpress-ssl.yml -o $dir/wordpress-ssl.yml
-  curl --url https://s3.amazonaws.com/get.wordpressapp.sh/docker-clean.sh -o $dir/docker-clean.sh
-  curl --url https://s3.amazonaws.com/get.wordpressapp.sh/wp.sh -o $dir/plugins/wordpress/install
-  chmod a+x $dir/plugins/wordpress/install
-
   # Set ENV variables for hostname
   if [ -f $dir/host.txt ]; then
 
-      # User has supplied host infoormation in advance of setup.
+      # User has supplied host information in advance of setup.
       echo "OK: $dir/host.txt is present. Continue..."
       DNS_USERDATA=yes
       export DNS_USERDATA
       SERVER_HOSTNAME=${1}
       export SERVER_HOSTNAME
-      if [ ! -f $dir/wordpress.yml ]; then cp $dir/wordpress-ssl.yml $dir/wordpress.yml; fi
 
     else
 
@@ -210,7 +198,7 @@ install_yaml () {
   #INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
   INSTANCE_ID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | sed 1q)
 
-  if [ ! -f $dir/wordpress.env ]; then
+  if [ ! -f $dir/.env ]; then
     if [ -z ${INSTANCE_TYPE} ]; then INSTANCE_TYPE=wordpress; fi
     # Generate a password for wordpress and mariadb
     if [ -z ${WORDPRESS_DB_PASSWORD} ]; then WORDPRESS_DB_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q) && export WORDPRESS_DB_PASSWORD; fi
@@ -227,7 +215,7 @@ install_yaml () {
     sed -i 's|{{DB_ROOT_PASSWORD}}|'${DB_ROOT_PASSWORD:?}'|g' $dir/wordpress.yml
     sed -i 's|{{SERVER_HOSTNAME}}|'${1:?}'|g' $dir/wordpress.yml
   else
-    echo "OK: wordpress.env is already installed"
+    echo "OK: .env is already installed"
   fi
 
 
@@ -242,7 +230,7 @@ install_env () {
   echo "OK: Setting up Docker ENV file with a hostname set to $1..."
 
   # If the ENV file exists we want to use it rather that overwrite
-  if [ ! -f $dir/wordpress.env ]; then
+  if [ ! -f $dir/.env ]; then
     {
           echo '# Nginx Server'
           echo 'NGINX_SERVER_NAME={{SERVER_HOSTNAME}}'
@@ -277,12 +265,12 @@ install_env () {
           echo 'REDIS_UPSTREAM=redis:6379'
           echo 'PHP_FPM_UPSTREAM=php-fpm:9000'
           echo 'PHP_FPM_PORT=9000'
-    } | tee $dir/wordpress.env
+    } | tee $dir/.env
 
     # Set the variables for the ENV file
-    sed -i 's|{{SERVER_HOSTNAME}}|'${1:?}'|g' $dir/wordpress.env
-    sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${2:?}'|g' $dir/wordpress.env
-    sed -i 's|{{WORDPRESS_DB_PASSWORD}}|'${3:?}'|g' $dir/wordpress.env
+    sed -i 's|{{SERVER_HOSTNAME}}|'${1:?}'|g' $dir/.env
+    sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${2:?}'|g' $dir/.env
+    sed -i 's|{{WORDPRESS_DB_PASSWORD}}|'${3:?}'|g' $dir/.env
   fi
 
 }
@@ -295,7 +283,7 @@ install_wpadmin () {
 
   echo "OK: Setting up Wordpress installation with a hostname set to $1..."
 
-   if [ ! -f $dir/wordpress.env ]; then echo "ERROR: Expecting wordpress.env to be present and it could not be found" && exit 1; fi
+   if [ ! -f $dir/.env ]; then echo "ERROR: Expecting .env to be present and it could not be found" && exit 1; fi
 
   # Wordpress login information
   {
@@ -350,7 +338,7 @@ elif [ ! -f /etc/letsencrypt/live/${1}/fullchain.pem ] && [ ${2} = yes ]; then
   fi
 
   # Set the variables for the Docker compose file
-  sed -i 's|{{INSTALL_DEV_SSL}}|'${INSTALL_DEV_SSL:?}'|g' $dir/wordpress.env
+  sed -i 's|{{INSTALL_DEV_SSL}}|'${INSTALL_DEV_SSL:?}'|g' $dir/.env
   sleep 5
 
 }
@@ -363,8 +351,7 @@ start_containers () {
 
   echo "OK: Starting Docker services for host ${1}..."
   # Start containers...
-  /usr/local/bin/docker-compose -f $dir/wordpress.yml up -d --remove-orphans
-  #/usr/local/bin/docker-compose -f ./wordpress.yml up -d --remove-orphans
+  /usr/local/bin/docker-compose -f $dir/docker-compose.yml up -d --remove-orphans
 
 }
 
@@ -384,13 +371,9 @@ run() {
   install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
   start_containers $SERVER_HOSTNAME
 
-  # Cleanup
-  rm -f $dir/wordpress-no-ssl.yml
-  rm -f $dir/wordpress-ssl.yml
-
   echo "OK: Wordpress system environment installation is now complete."
 
 }
 
-# If wordpress.env is present, it indicates a previous install. We will exit vs overwrite.
-if [ ! -f $dir/wordpress.env ]; then run && exit 0; else echo "OK: Wordpress already installed. Exiting installer." && exit 0; fi
+# If .env is present, it indicates a previous install. We will exit vs overwrite.
+if [ ! -f $dir/.env ]; then run && exit 0; else echo "OK: Wordpress already installed. Exiting installer." && exit 0; fi
