@@ -147,40 +147,40 @@ install_host () {
   # Set ENV variables for hostname
   if [ -f $dir/host.txt ]; then
 
-      # User has supplied host information in advance of setup.
-      echo "OK: $dir/host.txt is present. Continue..."
-      DNS_USERDATA=yes
-      export DNS_USERDATA
-      SERVER_HOSTNAME=${1}
-      export SERVER_HOSTNAME
+    # User has supplied host information in advance of setup.
+    echo "OK: $dir/host.txt is present. Continue..."
+    DNS_USERDATA=yes
+    export DNS_USERDATA
+    SERVER_HOSTNAME=${1}
+    export SERVER_HOSTNAME
 
+  else
+
+    # User has NOT supplied any host info. We will attempt to create it for them
+    echo "WARNING: The host is not set. Make sure $dir/host.txt exists and contains your domain variable SERVER_HOSTNAME=whateveryourhost.com" > $dir/HOSTERROR.txt
+
+    # We need to lookup the public IP
+    SERVER_IP=$(curl http://ifconfig.me/ip)
+    printf "%s " SERVER IP is $SERVER_IP
+    SERVER_HOSTNAME=$(dig +noall +answer -x $SERVER_IP @8.8.8.8 | awk '{ print $(NF) }' | sed -r 's/\.$//' )
+    echo "SERVER_HOSTNAME=$SERVER_HOSTNAME" > $dir/host.txt
+
+    # We do not have any user supplied host information
+    DNS_USERDATA=no
+    export DNS_USERDATA
+    export SERVER_HOSTNAME
+
+    if [ -z $SERVER_HOSTNAME ]; then
+      echo "ERROR: We could not determine your hostname.
+            This could be due to your hosting provider not setting
+            a default DNS entry for the server IP. Please create a
+            host file here $dir/host.txt that contains
+            SERVER_HOSTNAME=whateveryourhost.com" && exit 1
     else
-
-      # User has NOT supplied any host info. We will attempt to create it for them
-      echo "WARNING: The host is not set. Make sure $dir/host.txt exists and contains your domain variable SERVER_HOSTNAME=whateveryourhost.com" > $dir/HOSTERROR.txt
-
-      # We need to lookup the public IP
-      SERVER_IP=$(curl http://ifconfig.me/ip)
-      printf "%s " SERVER IP is $SERVER_IP
-      SERVER_HOSTNAME=$(dig +noall +answer -x $SERVER_IP @8.8.8.8 | awk '{ print $(NF) }' | sed -r 's/\.$//' )
       echo "SERVER_HOSTNAME=$SERVER_HOSTNAME" > $dir/host.txt
-
-      # We do not have any user supplied host information
-      DNS_USERDATA=no
-      export DNS_USERDATA
-      export SERVER_HOSTNAME
-
-      if [ -z $SERVER_HOSTNAME ]; then
-        echo "ERROR: We could not determine your hostname.
-              This could be due to your hosting provider not setting
-              a default DNS entry for the server IP. Please create a
-              host file here $dir/host.txt that contains
-              SERVER_HOSTNAME=whateveryourhost.com" && exit 1
-      else
-        echo "SERVER_HOSTNAME=$SERVER_HOSTNAME" > $dir/host.txt
-        # If we do not have a proper host/ip combination, we cant call Letsencrypt so we default to self-signs SSL certs
-        if [ ! -f $dir/wordpress.yml ]; then cp $dir/wordpress-no-ssl.yml $dir/wordpress.yml; fi
-      fi
+      # If we do not have a proper host/ip combination, we cant call Letsencrypt so we default to self-signs SSL certs
+      if [ ! -f $dir/wordpress.yml ]; then cp $dir/wordpress-no-ssl.yml $dir/wordpress.yml; fi
+    fi
 
   fi
 
@@ -256,7 +256,7 @@ install_env () {
           echo 'NONCE_KEY={{NONCE_KEY}}'
           echo 'SECURE_AUTH_KEY={{SECURE_AUTH_KEY}}'
           echo 'SECURE_AUTH_SALT={{SECURE_AUTH_SALT}}'
-          echo 'WP_DEBUG=true'
+          echo 'WP_DEBUG=false'
           echo
           echo '# PHP Configuration'
           echo 'APP_DOCROOT=/usr/share/nginx/html'
@@ -383,7 +383,7 @@ run() {
   install_host $SERVER_HOSTNAME
   install_yaml $SERVER_HOSTNAME $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_PASSWORD
   install_env $SERVER_HOSTNAME $WORDPRESS_DB_ROOT_PASSWORD $WORDPRESS_DB_PASSWORD $WORDPRESS_ADMIN_PASSWORD $AUTH_KEY $LOGGED_IN_KEY $LOGGED_IN_SALT $NONCE_KEY $SECURE_AUTH_KEY $SECURE_AUTH_SALT
-  # install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
+  install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
   install_repo
   start_containers $SERVER_HOSTNAME
 
