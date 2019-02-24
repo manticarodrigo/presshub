@@ -277,11 +277,12 @@ install_env () {
     sed -i 's|{{WORDPRESS_DB_PASSWORD}}|'${3:?}'|g' $dir/.env
     sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${4:?}'|g' $dir/.env
     sed -i 's|{{AUTH_KEY}}|'${5:?}'|g' $dir/.env
-    sed -i 's|{{LOGGED_IN_KEY}}|'${6:?}'|g' $dir/.env
-    sed -i 's|{{LOGGED_IN_SALT}}|'${7:?}'|g' $dir/.env
-    sed -i 's|{{NONCE_KEY}}|'${8:?}'|g' $dir/.env
-    sed -i 's|{{SECURE_AUTH_KEY}}|'${9:?}'|g' $dir/.env
-    sed -i 's|{{SECURE_AUTH_SALT}}|'${10:?}'|g' $dir/.env
+    sed -i 's|{{AUTH_SALT}}|'${6:?}'|g' $dir/.env
+    sed -i 's|{{LOGGED_IN_KEY}}|'${7:?}'|g' $dir/.env
+    sed -i 's|{{LOGGED_IN_SALT}}|'${8:?}'|g' $dir/.env
+    sed -i 's|{{NONCE_KEY}}|'${9:?}'|g' $dir/.env
+    sed -i 's|{{SECURE_AUTH_KEY}}|'${10:?}'|g' $dir/.env
+    sed -i 's|{{SECURE_AUTH_SALT}}|'${11:?}'|g' $dir/.env
 
   fi
 
@@ -351,7 +352,7 @@ run() {
   install_docker
   install_host $SERVER_HOSTNAME
   install_yaml $SERVER_HOSTNAME $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_PASSWORD
-  install_env $SERVER_HOSTNAME $WORDPRESS_DB_ROOT_PASSWORD $WORDPRESS_DB_PASSWORD $WORDPRESS_ADMIN_PASSWORD $AUTH_KEY $LOGGED_IN_KEY $LOGGED_IN_SALT $NONCE_KEY $SECURE_AUTH_KEY $SECURE_AUTH_SALT
+  install_env $SERVER_HOSTNAME $WORDPRESS_DB_ROOT_PASSWORD $WORDPRESS_DB_PASSWORD $WORDPRESS_ADMIN_PASSWORD $AUTH_KEY $AUTH_SALT $LOGGED_IN_KEY $LOGGED_IN_SALT $NONCE_KEY $SECURE_AUTH_KEY $SECURE_AUTH_SALT
   install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
   start_containers $SERVER_HOSTNAME
 
