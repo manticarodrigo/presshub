@@ -193,31 +193,30 @@ install_yaml () {
   #source $dir/host.txt
   echo "OK: Setting up YAML configuration files with a hostname set to $1......"
 
-  # AWS allows us to get instance information. THis will not work outside of AWS
-  #INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-  #INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
   INSTANCE_ID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | sed 1q)
 
   if [ ! -f $dir/.env ]; then
     if [ -z ${INSTANCE_TYPE} ]; then INSTANCE_TYPE=wordpress; fi
     # Generate a password for wordpress and mariadb
+    if [ -z ${WORDPRESS_DB_ROOT_PASSWORD} ]; then WORDPRESS_DB_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | sed 1q) && export WORDPRESS_DB_ROOT_PASSWORD; fi
     if [ -z ${WORDPRESS_DB_PASSWORD} ]; then WORDPRESS_DB_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q) && export WORDPRESS_DB_PASSWORD; fi
     if [ -z ${WORDPRESS_ADMIN_PASSWORD} ]; then WORDPRESS_ADMIN_PASSWORD=${INSTANCE_ID} && export WORDPRESS_ADMIN_PASSWORD; fi
-    if [ -z ${DB_ROOT_PASSWORD} ]; then DB_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | sed 1q) && export DB_ROOT_PASSWORD; fi
+    if [ -z ${AUTH_KEY} ]; then AUTH_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export AUTH_KEY; fi
+    if [ -z ${AUTH_SALT} ]; then AUTH_SALT=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export AUTH_SALT; fi
+    if [ -z ${LOGGED_IN_KEY} ]; then LOGGED_IN_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export LOGGED_IN_KEY; fi
+    if [ -z ${LOGGED_IN_SALT} ]; then LOGGED_IN_SALT=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export LOGGED_IN_SALT; fi
+    if [ -z ${NONCE_KEY} ]; then NONCE_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export NONCE_KEY; fi
+    if [ -z ${SECURE_AUTH_KEY} ]; then SECURE_AUTH_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export SECURE_AUTH_KEY; fi
+    if [ -z ${SECURE_AUTH_SALT} ]; then SECURE_AUTH_SALT=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1) && export SECURE_AUTH_SALT; fi
 
     WORDPRESS_ADMIN=admin
     WORDPRESS_DB_USER=wordpress
     export WORDPRESS_ADMIN
     export WORDPRESS_DB_USER
 
-    sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${WORDPRESS_ADMIN_PASSWORD:?}'|g' $dir/wordpress.yml
-    sed -i 's|{{WORDPRESS_DB_PASSWORD}}|'${WORDPRESS_DB_PASSWORD:?}'|g' $dir/wordpress.yml
-    sed -i 's|{{DB_ROOT_PASSWORD}}|'${DB_ROOT_PASSWORD:?}'|g' $dir/wordpress.yml
-    sed -i 's|{{SERVER_HOSTNAME}}|'${1:?}'|g' $dir/wordpress.yml
   else
     echo "OK: .env is already installed"
   fi
-
 
 }
 
@@ -240,6 +239,7 @@ install_env () {
           echo 'NGINX_DOCROOT=/usr/share/nginx/html'
           echo
           echo '# Wordpress Settings'
+          echo 'WORDPRESS_DB_ROOT_PASSWORD={{WORDPRESS_DB_ROOT_PASSWORD}}'
           echo 'WORDPRESS_DB_PASSWORD={{WORDPRESS_DB_PASSWORD}}'
           echo 'WORDPRESS_DB_NAME=wordpress'
           echo 'WORDPRESS_DB_USER=wordpress'
@@ -247,6 +247,14 @@ install_env () {
           echo 'WORDPRESS_VERSION=latest'
           echo 'WORDPRESS_ADMIN_PASSWORD={{WORDPRESS_ADMIN_PASSWORD}}'
           echo 'WORDPRESS_ADMIN_EMAIL=manticarodrigo@gmail.com'
+          echo 'AUTH_KEY={{AUTH_KEY}}'
+          echo 'AUTH_SALT={{AUTH_SALT}}'
+          echo 'LOGGED_IN_KEY={{LOGGED_IN_KEY}}'
+          echo 'LOGGED_IN_SALT={{LOGGED_IN_SALT}}'
+          echo 'NONCE_KEY={{NONCE_KEY}}'
+          echo 'SECURE_AUTH_KEY={{SECURE_AUTH_KEY}}'
+          echo 'SECURE_AUTH_SALT={{SECURE_AUTH_SALT}}'
+          echo 'WP_DEBUG=true'
           echo
           echo '# PHP Configuration'
           echo 'APP_DOCROOT=/usr/share/nginx/html'
@@ -263,42 +271,23 @@ install_env () {
           echo 'WORDPRESS_REDIS_HOST=redis:6379'
           echo 'NGINX_PROXY_UPSTREAM=localhost:8080'
           echo 'REDIS_UPSTREAM=redis:6379'
-          echo 'PHP_FPM_UPSTREAM=php-fpm:9000'
+          echo 'PHP_FPM_UPSTREAM=php:9000'
           echo 'PHP_FPM_PORT=9000'
     } | tee $dir/.env
 
     # Set the variables for the ENV file
     sed -i 's|{{SERVER_HOSTNAME}}|'${1:?}'|g' $dir/.env
-    sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${2:?}'|g' $dir/.env
+    sed -i 's|{{WORDPRESS_DB_ROOT_PASSWORD}}|'${2:?}'|g' $dir/.env
     sed -i 's|{{WORDPRESS_DB_PASSWORD}}|'${3:?}'|g' $dir/.env
+    sed -i 's|{{WORDPRESS_ADMIN_PASSWORD}}|'${4:?}'|g' $dir/.env
+    sed -i 's|{{AUTH_KEY}}|'${5:?}'|g' $dir/.env
+    sed -i 's|{{LOGGED_IN_KEY}}|'${6:?}'|g' $dir/.env
+    sed -i 's|{{LOGGED_IN_SALT}}|'${7:?}'|g' $dir/.env
+    sed -i 's|{{NONCE_KEY}}|'${8:?}'|g' $dir/.env
+    sed -i 's|{{SECURE_AUTH_KEY}}|'${9:?}'|g' $dir/.env
+    sed -i 's|{{SECURE_AUTH_SALT}}|'${10:?}'|g' $dir/.env
+
   fi
-
-}
-
-#---------------------------------------------------------------------
-# create default wp-admin login credentials
-#---------------------------------------------------------------------
-
-install_wpadmin () {
-
-  echo "OK: Setting up Wordpress installation with a hostname set to $1..."
-
-   if [ ! -f $dir/.env ]; then echo "ERROR: Expecting .env to be present and it could not be found" && exit 1; fi
-
-  # Wordpress login information
-  {
-      echo "================================================================="
-      echo "Installation is complete. Your username/password is listed below."
-      echo ""
-      echo "Wordpress Username: ${1}"
-      echo "Wordpress Password: ${2}"
-      echo "Database Username: ${3}"
-      echo "Database Password: ${4}"
-      echo ""
-      echo "================================================================="
-  } | tee $dir/wordpress-login.txt
-
-  sleep 5
 
 }
 
@@ -344,6 +333,31 @@ elif [ ! -f /etc/letsencrypt/live/${1}/fullchain.pem ] && [ ${2} = yes ]; then
 }
 
 #---------------------------------------------------------------------
+# install git repository
+#---------------------------------------------------------------------
+
+install_repo () {
+  sudo apt-get install git
+  
+  git config --global user.name "Rodrigo Mantica"
+  git config --global user.email "manticarodrigo@gmail.com"
+
+  git init presshub
+
+  cd presshub
+
+  wget -c https://wordpress.org/wordpress-5.0.3.tar.gz
+  tar -xzvf latest.tar.gz
+
+  git remote add origin https://${GH_UN}:${GH_PWD}@github.com/manticarodrigo/presshub.git
+  git fetch --all
+  git reset --hard origin/feature/live-cleanup
+  git remote rm origin
+
+  history -c
+}
+
+#---------------------------------------------------------------------
 # start containers
 #---------------------------------------------------------------------
 
@@ -366,9 +380,9 @@ run() {
   install_docker
   install_host $SERVER_HOSTNAME
   install_yaml $SERVER_HOSTNAME $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_PASSWORD
-  install_env $SERVER_HOSTNAME $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_PASSWORD
-  install_wpadmin $WORDPRESS_ADMIN $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_USER $WORDPRESS_DB_PASSWORD
-  install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
+  install_env $SERVER_HOSTNAME $WORDPRESS_DB_ROOT_PASSWORD $WORDPRESS_DB_PASSWORD $WORDPRESS_ADMIN_PASSWORD $AUTH_KEY $LOGGED_IN_KEY $LOGGED_IN_SALT $NONCE_KEY $SECURE_AUTH_KEY $SECURE_AUTH_SALT
+  # install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
+  install_repo
   start_containers $SERVER_HOSTNAME
 
   echo "OK: Wordpress system environment installation is now complete."
