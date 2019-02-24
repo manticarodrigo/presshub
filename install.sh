@@ -4,17 +4,19 @@
 dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 echo "OK: Your path is $dir"
 
-# Set the domain name of the server
-if [ -z $0 ]; then
-  echo "WARNING: No domain was set. Using defaults"
-elif [ -z $DOMAIN ]; then
-  echo "WARNING: The DOMAIN variable is empty. Using defaults..."
+# Set script params
+if [ -z $1 ] || [ -z $2 ] || [ -z $3 ]; then
+  echo "WARNING: No params were set."
 else
+  DOMAIN=$1
   export DOMAIN
   SERVER_HOSTNAME=$DOMAIN
+  
   export SERVER_HOSTNAME
-  echo "OK: Setting the user supplied domain to $DOMAIN..."
-  echo "SERVER_HOSTNAME=$DOMAIN" > $dir/host.txt
+  GH_UN=$2
+  GH_PWD=$3
+  export GH_UN
+  export GH_PWD
 
 fi
 
@@ -311,7 +313,7 @@ install_letsencrypt () {
   # Next, we check to see if Letsencrypt should be installed but is not.
 elif [ ! -f /etc/letsencrypt/live/${1}/fullchain.pem ] && [ ${2} = yes ]; then
     echo "OK: Letsencrypt needs to be installed on this host. Running certbot..."
-    docker_command=$(docker run --rm -p 80:80 -p 443:443 --privileged --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" -v "/var/lib/letsencrypt:/var/lib/letsencrypt" certbot/certbot certonly -n --debug --agree-tos --email user@gmail.com --standalone -d ${1})
+    docker_command=$(docker run --rm -p 80:80 -p 443:443 --privileged --name certbot -v "/etc/letsencrypt:/etc/letsencrypt" -v "/var/lib/letsencrypt:/var/lib/letsencrypt" certbot/certbot certonly -n --debug --agree-tos --email manticarodrigo@gmail.com --standalone -d ${1})
     echo "OK: Certbot output is: $docker_command"
 
     INSTALL_DEV_SSL=false
@@ -347,7 +349,7 @@ install_repo () {
   cd presshub
 
   wget -c https://wordpress.org/wordpress-5.0.3.tar.gz
-  tar -xzvf latest.tar.gz
+  tar -xzvf wordpress-5.0.3.tar.gz
 
   git remote add origin https://${GH_UN}:${GH_PWD}@github.com/manticarodrigo/presshub.git
   git fetch --all
@@ -365,7 +367,7 @@ start_containers () {
 
   echo "OK: Starting Docker services for host ${1}..."
   # Start containers...
-  /usr/local/bin/docker-compose -f $dir/docker-compose.yml up -d --remove-orphans
+  /usr/local/bin/docker-compose -f $dir/presshub/docker-compose.yml up -d --remove-orphans
 
 }
 

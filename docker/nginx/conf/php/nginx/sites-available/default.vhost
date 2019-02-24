@@ -1,5 +1,5 @@
 server {
-  server_name                     {{NGINX_SERVER_NAME}} www.{{NGINX_SERVER_NAME}} *.{{NGINX_SERVER_NAME}} manticarodrigo.com *.manticarodrigo.com platefit.co *.platefit.co thomasteamproperties.com *.thomasteamproperties.com sivallc.com *.sivallc.com lacoloniacd.com *.lacoloniacd.com empaticodaily.com *.empaticodaily.com;
+  server_name                     {{NGINX_SERVER_NAME}} www.{{NGINX_SERVER_NAME}} *.{{NGINX_SERVER_NAME}};
   server_tokens                   off;
   server_name_in_redirect         off;
   listen                          *:80 default_server;
@@ -12,7 +12,7 @@ server {
 }
 
 server {
-  server_name                     {{NGINX_SERVER_NAME}} www.{{NGINX_SERVER_NAME}} *.{{NGINX_SERVER_NAME}} manticarodrigo.com *.manticarodrigo.com platefit.co *.platefit.co thomasteamproperties.com *.thomasteamproperties.com sivallc.com *.sivallc.com lacoloniacd.com *.lacoloniacd.com empaticodaily.com *.empaticodaily.com;
+  server_name                     {{NGINX_SERVER_NAME}} www.{{NGINX_SERVER_NAME}} *.{{NGINX_SERVER_NAME}};
   server_tokens                   off;
   server_name_in_redirect         off;
   root                            {{NGINX_DOCROOT}};
