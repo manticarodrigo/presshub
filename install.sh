@@ -5,18 +5,12 @@ dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 echo "OK: Your path is $dir"
 
 # Set script params
-if [ -z $1 ] || [ -z $2 ] || [ -z $3 ]; then
-  echo "WARNING: No params were set."
+if [ -z $1 ]; then
+  echo "WARNING: No domain was set."
 else
   DOMAIN=$1
   export DOMAIN
   SERVER_HOSTNAME=$DOMAIN
-  
-  export SERVER_HOSTNAME
-  GH_UN=$2
-  GH_PWD=$3
-  export GH_UN
-  export GH_PWD
 
 fi
 
@@ -335,31 +329,6 @@ elif [ ! -f /etc/letsencrypt/live/${1}/fullchain.pem ] && [ ${2} = yes ]; then
 }
 
 #---------------------------------------------------------------------
-# install git repository
-#---------------------------------------------------------------------
-
-install_repo () {
-  sudo apt-get install git
-  
-  git config --global user.name "Rodrigo Mantica"
-  git config --global user.email "manticarodrigo@gmail.com"
-
-  git init presshub
-
-  cd presshub
-
-  wget -c https://wordpress.org/wordpress-5.0.3.tar.gz
-  tar -xzvf wordpress-5.0.3.tar.gz
-
-  git remote add origin https://${GH_UN}:${GH_PWD}@github.com/manticarodrigo/presshub.git
-  git fetch --all
-  git reset --hard origin/feature/live-cleanup
-  git remote rm origin
-
-  history -c
-}
-
-#---------------------------------------------------------------------
 # start containers
 #---------------------------------------------------------------------
 
@@ -367,7 +336,7 @@ start_containers () {
 
   echo "OK: Starting Docker services for host ${1}..."
   # Start containers...
-  /usr/local/bin/docker-compose -f $dir/presshub/docker-compose.yml up -d --remove-orphans
+  /usr/local/bin/docker-compose -f $dir/docker-compose.yml up -d --remove-orphans
 
 }
 
@@ -384,7 +353,6 @@ run() {
   install_yaml $SERVER_HOSTNAME $WORDPRESS_ADMIN_PASSWORD $WORDPRESS_DB_PASSWORD
   install_env $SERVER_HOSTNAME $WORDPRESS_DB_ROOT_PASSWORD $WORDPRESS_DB_PASSWORD $WORDPRESS_ADMIN_PASSWORD $AUTH_KEY $LOGGED_IN_KEY $LOGGED_IN_SALT $NONCE_KEY $SECURE_AUTH_KEY $SECURE_AUTH_SALT
   install_letsencrypt $SERVER_HOSTNAME $DNS_USERDATA
-  install_repo
   start_containers $SERVER_HOSTNAME
 
   echo "OK: Wordpress system environment installation is now complete."
