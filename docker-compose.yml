@@ -37,6 +37,9 @@ services:
     tmpfs: /var/cache
     volumes:
       - ./wordpress:${APP_DOCROOT}
+      # - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem
+      # - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem
+      # - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/chain.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/chain.pem
     ulimits:
       nproc: 65535
       nofile:
@@ -60,9 +63,6 @@ services:
     tty: true
     volumes:
       - ./wordpress:${APP_DOCROOT}
-      - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem
-      - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem
-      - /etc/letsencrypt/live/${NGINX_SERVER_NAME}/chain.pem:/etc/letsencrypt/live/${NGINX_SERVER_NAME}/chain.pem
     ulimits:
       nproc: 65535
       nofile:

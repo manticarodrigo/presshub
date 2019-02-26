@@ -38,6 +38,8 @@ server {
   include                         /etc/nginx/header.d/proxy.conf;
 
   include                         /etc/nginx/conf.d/cdn.conf;
+  
+  include                         /etc/nginx/rewrite.d/admin.conf;
 
   location / {
      proxy_pass                   http://proxy/;
