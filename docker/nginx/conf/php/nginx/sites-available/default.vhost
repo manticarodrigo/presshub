@@ -40,7 +40,7 @@ server {
   include                         /etc/nginx/conf.d/cdn.conf;
   
   include                         /etc/nginx/rewrite.d/admin.conf;
-
+  
   location / {
      proxy_pass                   http://proxy/;
      proxy_redirect               / /;
@@ -52,7 +52,7 @@ server {
   include                         /etc/nginx/conf.d/monit.conf;
   include                         /etc/nginx/conf.d/purge.conf;
   include                         /etc/nginx/conf.d/failed.conf;
-  include                         /etc/nginx/conf.d/webp-redirect.conf;
+  include                         /etc/nginx/conf.d/webp.conf;
 }
 
 server {
